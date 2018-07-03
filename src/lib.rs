@@ -88,4 +88,9 @@ impl<Pin1, Pin2, Pin3> ShiftRegister<Pin1, Pin2, Pin3>
             ShiftRegisterPin::new(self, 7),
         ]
     }
+
+    pub fn release(self) -> (Pin1, Pin2, Pin3) {
+        let Self{clock, latch, data, output_state: _} = self;
+        (clock.into_inner(), latch.into_inner(), data.into_inner())
+    }
 }

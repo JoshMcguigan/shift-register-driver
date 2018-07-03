@@ -12,27 +12,31 @@
 - [ ] Add parallel-out serial-in shift register support
 - [ ] Support chained shift registers for more than 8 IO
 
-## Examples
+## Example
 
 ```rust
-let shift_register = ShiftRegister::new(clock, latch, data);
-let mut outputs = shift_register.decompose();
+    let shift_register = ShiftRegister::new(clock, latch, data);
+    {
+        let mut outputs = shift_register.decompose();
 
-loop {
+        for i in 0..8 {
+            // Optionally control the pins directly through the shift_register struct
+            //      or individually by using the decompose method
+            // shift_register.update(i, true);
 
-    for i in 0..8 {
-        // Optionally control the pins directly through the shift_register struct
-        //      or individually by using the decompose method
-        // shift_register.update(i, false);
-        // shift_register.update((i+1)%4, true);
+            outputs[i].set_high();
+            delay.delay_ms(300u32);
+        }
 
-        outputs[i].set_low();
-        outputs[(i+1)%8].set_high();
+        for i in 0..8 {
+            outputs[7-i].set_low();
+            delay.delay_ms(300u32);
+        }
 
-        delay.delay_ms(300u32);
     }
-
-}
+    // shift_register.release() can optionally be used when the shift register is no longer needed
+    //      in order to regain ownership of the original GPIO pins
+    let (clock, latch, data) = shift_register.release();
 ```
     
 ## License
