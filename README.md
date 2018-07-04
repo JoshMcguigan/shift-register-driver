@@ -8,13 +8,13 @@
 
 ## TODO
 
-- [ ] Update naming and module structure to make room for adding parallel-out serial-in shift register support
 - [ ] Add parallel-out serial-in shift register support
 - [ ] Support chained shift registers for more than 8 IO
 
 ## Example
 
 ```rust
+    use shift_register_driver::sipo::ShiftRegister;
     let shift_register = ShiftRegister::new(clock, latch, data);
     {
         let mut outputs = shift_register.decompose();
