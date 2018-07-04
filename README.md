@@ -1,4 +1,4 @@
-# shift-register-driver [![Docs](https://docs.rs/shift-register-driver/badge.svg)](https://docs.rs/shift-register-driver)
+# shift-register-driver [![Docs](https://img.shields.io/crates/v/shift-register-driver.svg)](https://crates.io/crates/shift-register-driver) [![Docs](https://docs.rs/shift-register-driver/badge.svg)](https://docs.rs/shift-register-driver)
 
 > Platform agnostic driver for shift register's built using the embedded-hal
 
