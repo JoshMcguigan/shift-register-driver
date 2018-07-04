@@ -1,6 +1,6 @@
-# shift-register-driver
+# shift-register-driver [![Docs](https://docs.rs/shift-register-driver/badge.svg)](https://docs.rs/shift-register-driver)
 
-> Platform agnostic driver for shift register's built using the embedded-hal. 
+> Platform agnostic driver for shift register's built using the embedded-hal
 
 ## What works
 
