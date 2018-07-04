@@ -1,6 +1,9 @@
+//! Serial-in parallel-out shift register
+
 use core::cell::RefCell;
 use hal::digital::OutputPin;
 
+/// Output pin of the shift register
 pub struct ShiftRegisterPin<'a, Pin1: 'a, Pin2: 'a, Pin3: 'a>
     where Pin1: OutputPin,
           Pin2: OutputPin,
@@ -34,6 +37,7 @@ impl<'a, Pin1, Pin2, Pin3> OutputPin for ShiftRegisterPin<'a, Pin1, Pin2, Pin3>
     }
 }
 
+/// Serial-in parallel-out shift register
 pub struct ShiftRegister<Pin1, Pin2, Pin3>
     where Pin1: OutputPin,
           Pin2: OutputPin,
@@ -50,6 +54,7 @@ impl<Pin1, Pin2, Pin3> ShiftRegister<Pin1, Pin2, Pin3>
           Pin2: OutputPin,
           Pin3: OutputPin,
 {
+    /// Creates a new SIPO shift register from clock, latch, and data output pins
     pub fn new(clock: Pin1, latch: Pin2, data: Pin3) -> Self {
         ShiftRegister {
             clock: RefCell::new(clock),
@@ -58,7 +63,7 @@ impl<Pin1, Pin2, Pin3> ShiftRegister<Pin1, Pin2, Pin3>
             output_state: RefCell::new([false; 8]),
         }
     }
-
+    /// Sets the value of the shift register output at `index` to value `command`
     pub fn update(&self, index: usize, command: bool) {
         self.output_state.borrow_mut()[index] = command;
         let output_state = self.output_state.borrow();
@@ -73,7 +78,7 @@ impl<Pin1, Pin2, Pin3> ShiftRegister<Pin1, Pin2, Pin3>
 
         self.latch.borrow_mut().set_high();
     }
-
+    /// Get embedded-hal output pins to control the shift register outputs
     pub fn decompose(&self) -> [ShiftRegisterPin<Pin1, Pin2, Pin3>; 8] {
         [
             ShiftRegisterPin::new(self, 0),
@@ -86,7 +91,7 @@ impl<Pin1, Pin2, Pin3> ShiftRegister<Pin1, Pin2, Pin3>
             ShiftRegisterPin::new(self, 7),
         ]
     }
-
+    /// Consume the shift register and return the original clock, latch, and data output pins
     pub fn release(self) -> (Pin1, Pin2, Pin3) {
         let Self{clock, latch, data, output_state: _} = self;
         (clock.into_inner(), latch.into_inner(), data.into_inner())
