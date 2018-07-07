@@ -1,6 +1,6 @@
 [package]
 name = "shift-register-driver"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Josh Mcguigan"]
 categories = ["embedded", "hardware-support", "no-std"]
 description = "Platform agnostic driver for shift register's built using the embedded-hal"

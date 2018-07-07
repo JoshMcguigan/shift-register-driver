@@ -5,11 +5,11 @@
 ## What works
 
 - Controlling outputs through serial-in parallel-out shift registers with 8 outputs
+- Chaining shift registers up to 128 outputs
 
 ## TODO
 
 - [ ] Add parallel-out serial-in shift register support
-- [ ] Support chained shift registers for more than 8 IO
 
 ## Example
 
@@ -20,10 +20,6 @@
         let mut outputs = shift_register.decompose();
 
         for i in 0..8 {
-            // Optionally control the pins directly through the shift_register struct
-            //      or individually by using the decompose method
-            // shift_register.update(i, true);
-
             outputs[i].set_high();
             delay.delay_ms(300u32);
         }
