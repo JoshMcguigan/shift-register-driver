@@ -1,7 +1,7 @@
 //! Serial-in parallel-out shift register
 
 use core::cell::RefCell;
-use hal::digital::OutputPin;
+use hal::digital::v2::OutputPin;
 use core::mem;
 use core::ptr;
 
