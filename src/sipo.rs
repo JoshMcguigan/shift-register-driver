@@ -91,7 +91,7 @@ macro_rules! ShiftRegisterBuilder {
                 let mut pins: [ShiftRegisterPin; $size];
 
                 unsafe {
-                    pins = mem::uninitialized();
+                    pins = mem::MaybeUninit::uninit();
                     for (index, elem) in pins[..].iter_mut().enumerate() {
                         ptr::write(elem, ShiftRegisterPin::new(self, index));
                     }
