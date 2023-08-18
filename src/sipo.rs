@@ -1,15 +1,16 @@
 //! Serial-in parallel-out shift register
 
 use core::cell::RefCell;
-use hal::digital::v2::OutputPin;
 use core::mem;
-use core::ptr;
+
+use hal::digital::v2::OutputPin;
 
 trait ShiftRegisterInternal {
     fn update(&self, index: usize, command: bool);
 }
 
 /// Output pin of the shift register
+#[derive(Copy, Clone)]
 pub struct ShiftRegisterPin<'a>
 {
     shift_register: &'a dyn ShiftRegisterInternal,
@@ -61,16 +62,19 @@ macro_rules! ShiftRegisterBuilder {
             fn update(&self, index: usize, command: bool) {
                 self.output_state.borrow_mut()[index] = command;
                 let output_state = self.output_state.borrow();
-                self.latch.borrow_mut().set_low();
+                let _ = self.latch.borrow_mut().set_low().is_ok();
 
                 for i in 1..=output_state.len() {
-                    if output_state[output_state.len()-i] {self.data.borrow_mut().set_high();}
-                        else {self.data.borrow_mut().set_low();}
-                    self.clock.borrow_mut().set_high();
-                    self.clock.borrow_mut().set_low();
+                    if output_state[output_state.len()-i] {
+                        let _= self.data.borrow_mut().set_high().is_ok();
+                    } else {
+                        let _ = self.data.borrow_mut().set_low().is_ok();
+                    }
+                    let _ = self.clock.borrow_mut().set_high().is_ok();
+                    let _ = self.clock.borrow_mut().set_low().is_ok();
                 }
 
-                self.latch.borrow_mut().set_high();
+                let _ = self.latch.borrow_mut().set_high().is_ok();
             }
         }
 
@@ -91,15 +95,13 @@ macro_rules! ShiftRegisterBuilder {
             }
 
             /// Get embedded-hal output pins to control the shift register outputs
-            pub fn decompose(&self) -> [ShiftRegisterPin; $size] {
-                let mut pins: [ShiftRegisterPin; $size];
+            pub fn decompose(&self) ->  [mem::MaybeUninit<ShiftRegisterPin>; $size] {
+                let mut pins:  [mem::MaybeUninit<ShiftRegisterPin>; $size];
 
-                unsafe {
-                    pins = mem::MaybeUninit::uninit();
-                    for (index, elem) in pins[..].iter_mut().enumerate() {
-                        ptr::write(elem, ShiftRegisterPin::new(self, index));
+                    pins = [mem::MaybeUninit::uninit(); $size];
+                    for (index, elem) in pins.iter_mut().enumerate() {
+                        elem.write(ShiftRegisterPin::new(self, index));
                     }
-                }
 
                 pins
             }
