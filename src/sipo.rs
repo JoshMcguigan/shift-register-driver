@@ -12,25 +12,29 @@ trait ShiftRegisterInternal {
 /// Output pin of the shift register
 pub struct ShiftRegisterPin<'a>
 {
-    shift_register: &'a ShiftRegisterInternal,
+    shift_register: &'a dyn ShiftRegisterInternal,
     index: usize,
 }
 
 impl<'a> ShiftRegisterPin<'a>
 {
-    fn new(shift_register: &'a ShiftRegisterInternal, index: usize) -> Self {
+    fn new(shift_register: &'a dyn ShiftRegisterInternal, index: usize) -> Self {
         ShiftRegisterPin { shift_register, index }
     }
 }
 
 impl<'a> OutputPin for ShiftRegisterPin<'a>
 {
-    fn set_low(&mut self) {
+    type Error = ();
+
+    fn set_low(&mut self) -> Result<(), ()> {
         self.shift_register.update(self.index, false);
+        Ok(())
     }
 
-    fn set_high(&mut self) {
+    fn set_high(&mut self) -> Result<(), ()> {
         self.shift_register.update(self.index, true);
+        Ok(())
     }
 }
 
