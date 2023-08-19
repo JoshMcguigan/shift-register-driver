@@ -4,13 +4,13 @@ use core::cell::RefCell;
 use core::mem;
 
 use hal::digital::v2::OutputPin;
+use sipo::mem::MaybeUninit;
 
 trait ShiftRegisterInternal {
     fn update(&self, index: usize, command: bool);
 }
 
 /// Output pin of the shift register
-#[derive(Copy, Clone)]
 pub struct ShiftRegisterPin<'a>
 {
     shift_register: &'a dyn ShiftRegisterInternal,
@@ -95,15 +95,24 @@ macro_rules! ShiftRegisterBuilder {
             }
 
             /// Get embedded-hal output pins to control the shift register outputs
-            pub fn decompose(&self) ->  [mem::MaybeUninit<ShiftRegisterPin>; $size] {
-                let mut pins:  [mem::MaybeUninit<ShiftRegisterPin>; $size];
+            pub fn decompose(&self) ->  [ShiftRegisterPin; $size] {
 
-                    pins = [mem::MaybeUninit::uninit(); $size];
-                    for (index, elem) in pins.iter_mut().enumerate() {
-                        elem.write(ShiftRegisterPin::new(self, index));
-                    }
+                // Create an uninitialized array of `MaybeUninit`. The `assume_init` is
+                // safe because the type we are claiming to have initialized here is a
+                // bunch of `MaybeUninit`s, which do not require initialization.
+                let mut pins:  [mem::MaybeUninit<ShiftRegisterPin>; $size] = unsafe {
+                    MaybeUninit::uninit().assume_init()
+                };
 
-                pins
+                // Dropping a `MaybeUninit` does nothing, so if there is a panic during this loop,
+                // we have a memory leak, but there is no memory safety issue.
+                for (index, elem) in pins.iter_mut().enumerate() {
+                    elem.write(ShiftRegisterPin::new(self, index));
+                }
+
+                // Everything is initialized. Transmute the array to the
+                // initialized type.
+                unsafe { mem::transmute::<_, [ShiftRegisterPin; $size]>(pins) }
             }
 
             /// Consume the shift register and return the original clock, latch, and data output pins
