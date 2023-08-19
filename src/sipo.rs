@@ -8,7 +8,7 @@ use hal::digital::v2::OutputPin;
 use sipo::mem::MaybeUninit;
 
 trait ShiftRegisterInternal {
-    fn update(&self, index: usize, command: bool);
+    fn update(&self, index: usize, command: bool) -> Result<(), &str>;
 }
 
 /// Output pin of the shift register
@@ -27,15 +27,15 @@ impl<'a> ShiftRegisterPin<'a>
 
 impl<'a> OutputPin for ShiftRegisterPin<'a>
 {
-    type Error = ();
+    type Error = &'a str;
 
-    fn set_low(&mut self) -> Result<(), ()> {
-        self.shift_register.update(self.index, false);
+    fn set_low(&mut self) -> Result<(), Self::Error> {
+        self.shift_register.update(self.index, false).map_err(|_e| "an error occurred.")?;
         Ok(())
     }
 
-    fn set_high(&mut self) -> Result<(), ()> {
-        self.shift_register.update(self.index, true);
+    fn set_high(&mut self) -> Result<(), Self::Error> {
+        self.shift_register.update(self.index, true).map_err(|_e| "an error occurred.")?;
         Ok(())
     }
 }
@@ -46,7 +46,7 @@ macro_rules! ShiftRegisterBuilder {
         pub struct $name<Pin1, Pin2, Pin3>
             where Pin1: OutputPin,
                   Pin2: OutputPin,
-                  Pin3: OutputPin,
+                  Pin3: OutputPin
         {
             clock: RefCell<Pin1>,
             latch: RefCell<Pin2>,
@@ -57,25 +57,26 @@ macro_rules! ShiftRegisterBuilder {
         impl<Pin1, Pin2, Pin3> ShiftRegisterInternal for $name<Pin1, Pin2, Pin3>
             where Pin1: OutputPin,
                   Pin2: OutputPin,
-                  Pin3: OutputPin,
+                  Pin3: OutputPin
         {
             /// Sets the value of the shift register output at `index` to value `command`
-            fn update(&self, index: usize, command: bool) {
+            fn update(&self, index: usize, command: bool) -> Result<(), &str>{
                 self.output_state.borrow_mut()[index] = command;
                 let output_state = self.output_state.borrow();
-                let _ = self.latch.borrow_mut().set_low().is_ok();
+                self.latch.borrow_mut().set_low().map_err(|_e| "An error occurred.")?;
 
                 for i in 1..=output_state.len() {
-                    if output_state[output_state.len()-i] {
-                        let _= self.data.borrow_mut().set_high().is_ok();
+                    if output_state[output_state.len() - i] {
+                        self.data.borrow_mut().set_high().map_err(|_e| "An error occurred.")?;
                     } else {
-                        let _ = self.data.borrow_mut().set_low().is_ok();
+                        self.data.borrow_mut().set_low().map_err(|_e| "An error occurred.")?;
                     }
-                    let _ = self.clock.borrow_mut().set_high().is_ok();
-                    let _ = self.clock.borrow_mut().set_low().is_ok();
+                    self.clock.borrow_mut().set_high().map_err(|_e| "An error occurred.")?;
+                    self.clock.borrow_mut().set_low().map_err(|_e| "An error occurred.")?;
                 }
 
-                let _ = self.latch.borrow_mut().set_high().is_ok();
+                self.latch.borrow_mut().set_high().map_err(|_e| "An error occurred.")?;
+                Ok(())
             }
         }
 
@@ -83,7 +84,7 @@ macro_rules! ShiftRegisterBuilder {
         impl<Pin1, Pin2, Pin3> $name<Pin1, Pin2, Pin3>
             where Pin1: OutputPin,
                   Pin2: OutputPin,
-                  Pin3: OutputPin,
+                  Pin3: OutputPin
         {
             /// Creates a new SIPO shift register from clock, latch, and data output pins
             pub fn new(clock: Pin1, latch: Pin2, data: Pin3) -> Self {
