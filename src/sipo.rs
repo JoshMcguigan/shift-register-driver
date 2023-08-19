@@ -4,6 +4,7 @@ use core::cell::RefCell;
 use core::mem;
 
 use hal::digital::v2::OutputPin;
+
 use sipo::mem::MaybeUninit;
 
 trait ShiftRegisterInternal {
