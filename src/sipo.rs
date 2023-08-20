@@ -8,7 +8,7 @@ use hal::digital::v2::OutputPin;
 use sipo::mem::MaybeUninit;
 
 trait ShiftRegisterInternal {
-    fn update(&self, index: usize, command: bool) -> Result<(), &str>;
+    fn update(&self, index: usize, command: bool) -> Result<(), ()>;
 }
 
 /// Output pin of the shift register
@@ -25,17 +25,17 @@ impl<'a> ShiftRegisterPin<'a>
     }
 }
 
-impl<'a> OutputPin for ShiftRegisterPin<'a>
+impl OutputPin for ShiftRegisterPin<'_>
 {
-    type Error = &'a str;
+    type Error = ();
 
     fn set_low(&mut self) -> Result<(), Self::Error> {
-        self.shift_register.update(self.index, false).map_err(|_e| "an error occurred.")?;
+        self.shift_register.update(self.index, false)?;
         Ok(())
     }
 
     fn set_high(&mut self) -> Result<(), Self::Error> {
-        self.shift_register.update(self.index, true).map_err(|_e| "an error occurred.")?;
+        self.shift_register.update(self.index, true)?;
         Ok(())
     }
 }
@@ -60,22 +60,22 @@ macro_rules! ShiftRegisterBuilder {
                   Pin3: OutputPin
         {
             /// Sets the value of the shift register output at `index` to value `command`
-            fn update(&self, index: usize, command: bool) -> Result<(), &str>{
+            fn update(&self, index: usize, command: bool) -> Result<(), ()>{
                 self.output_state.borrow_mut()[index] = command;
                 let output_state = self.output_state.borrow();
-                self.latch.borrow_mut().set_low().map_err(|_e| "An error occurred.")?;
+                self.latch.borrow_mut().set_low().map_err(|_e| ())?;
 
                 for i in 1..=output_state.len() {
                     if output_state[output_state.len() - i] {
-                        self.data.borrow_mut().set_high().map_err(|_e| "An error occurred.")?;
+                        self.data.borrow_mut().set_high().map_err(|_e| ())?;
                     } else {
-                        self.data.borrow_mut().set_low().map_err(|_e| "An error occurred.")?;
+                        self.data.borrow_mut().set_low().map_err(|_e| ())?;
                     }
-                    self.clock.borrow_mut().set_high().map_err(|_e| "An error occurred.")?;
-                    self.clock.borrow_mut().set_low().map_err(|_e| "An error occurred.")?;
+                    self.clock.borrow_mut().set_high().map_err(|_e| ())?;
+                    self.clock.borrow_mut().set_low().map_err(|_e| ())?;
                 }
 
-                self.latch.borrow_mut().set_high().map_err(|_e| "An error occurred.")?;
+                self.latch.borrow_mut().set_high().map_err(|_e| ())?;
                 Ok(())
             }
         }
