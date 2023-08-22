@@ -3,9 +3,9 @@
 use core::cell::RefCell;
 use core::mem;
 
-use hal::digital::v2::OutputPin;
+use crate::hal::digital::v2::OutputPin;
 
-use sipo::mem::MaybeUninit;
+use crate::sipo::mem::MaybeUninit;
 
 trait ShiftRegisterInternal {
     fn update(&self, index: usize, command: bool) -> Result<(), ()>;
