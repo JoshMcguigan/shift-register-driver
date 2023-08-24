@@ -37,7 +37,7 @@ impl<'a> ShiftRegisterPin<'a>
     }
 }
 
-impl OutputPin for ShiftRegisterPin<'_>
+impl<'a> OutputPin for ShiftRegisterPin<'a>
 {
     type Error = ();
 
