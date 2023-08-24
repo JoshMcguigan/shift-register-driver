@@ -16,8 +16,6 @@ pub struct ShiftRegisterPin<'a>
     index: usize,
 }
 
-unsafe impl<'a> Sync for ShiftRegisterPin<'a> {}
-
 impl<'a> ShiftRegisterPin<'a>
 {
     fn new(shift_register: &'a dyn ShiftRegisterInternal, index: usize) -> Self {
