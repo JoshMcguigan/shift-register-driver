@@ -235,7 +235,7 @@ macro_rules! ShiftRegisterBuilder {
             }
 
             /// Get embedded-hal output pins to control the shift register outputs
-            pub fn decompose(&self) ->  [ShiftRegisterPin; $size] {
+            pub fn decompose(&'static self) ->  [ShiftRegisterPin; $size] {
 
                 // Create an uninitialized array of `MaybeUninit`. The `assume_init` is
                 // safe because the type we are claiming to have initialized here is a
