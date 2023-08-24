@@ -1,11 +1,9 @@
 //! Serial-in parallel-out shift register
 
 use core::cell::RefCell;
-use core::mem;
+use core::mem::{self, MaybeUninit};
 
-use hal::digital::v2::OutputPin;
-
-use sipo::mem::MaybeUninit;
+use crate::hal::digital::v2::OutputPin;
 
 trait ShiftRegisterInternal {
     fn update(&self, index: usize, command: bool) -> Result<(), ()>;
@@ -104,7 +102,7 @@ macro_rules! ShiftRegisterBuilder {
                 // Create an uninitialized array of `MaybeUninit`. The `assume_init` is
                 // safe because the type we are claiming to have initialized here is a
                 // bunch of `MaybeUninit`s, which do not require initialization.
-                let mut pins:  [mem::MaybeUninit<ShiftRegisterPin>; $size] = unsafe {
+                let mut pins:  [MaybeUninit<ShiftRegisterPin>; $size] = unsafe {
                     MaybeUninit::uninit().assume_init()
                 };
 
