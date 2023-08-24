@@ -12,7 +12,7 @@ readme = "README.md"
 
 [dependencies]
 embedded-hal = "0.2.1"
-freertos-rust = {version = "*", optional = true}
+freertos-rust = { version = "*", optional = true }
 
 [features]
 freertos = ["freertos-rust"]
