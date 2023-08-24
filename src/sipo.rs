@@ -158,7 +158,7 @@ macro_rules! ShiftRegisterBuilder {
             clock: Arc<Mutex<Pin1>>,
             latch: Arc<Mutex<Pin2>>,
             data: Arc<Mutex<Pin3>>,
-            output_state:  Arc<Mutex<[bool; $size]>>,
+            output_state: Arc<Mutex<[bool; $size]>>,
         }
 
         impl<Pin1, Pin2, Pin3> ShiftRegisterInternal for $name<Pin1, Pin2, Pin3>
@@ -235,7 +235,7 @@ macro_rules! ShiftRegisterBuilder {
             }
 
             /// Get embedded-hal output pins to control the shift register outputs
-            pub fn decompose<'a>(&'a self) ->  [ShiftRegisterPin; $size] {
+            pub fn decompose(& self) ->  [ShiftRegisterPin; $size] {
 
                 // Create an uninitialized array of `MaybeUninit`. The `assume_init` is
                 // safe because the type we are claiming to have initialized here is a
