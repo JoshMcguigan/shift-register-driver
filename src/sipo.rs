@@ -15,12 +15,15 @@ trait ShiftRegisterInternal {
     fn update(&self, index: usize, command: bool) -> Result<(), ()>;
 }
 
+
 #[cfg(feature = "freertos")]
 trait ShiftRegisterInternal: Sync {
     fn update(&self, index: usize, command: bool) -> Result<(), ()>;
 }
 
 /// Output pin of the shift register
+#[cfg(feature = "freertos")]
+#[derive(Clone, Copy)]
 pub struct ShiftRegisterPin<'a>
 {
     shift_register: &'a dyn ShiftRegisterInternal,
@@ -235,7 +238,7 @@ macro_rules! ShiftRegisterBuilder {
             }
 
             /// Get embedded-hal output pins to control the shift register outputs
-            pub fn decompose(& self) ->  [ShiftRegisterPin; $size] {
+            pub fn decompose(&self) ->  [ShiftRegisterPin; $size] {
 
                 // Create an uninitialized array of `MaybeUninit`. The `assume_init` is
                 // safe because the type we are claiming to have initialized here is a
