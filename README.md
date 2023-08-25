@@ -6,6 +6,7 @@
 
 - Controlling outputs through serial-in parallel-out shift registers with 8 outputs
 - Chaining shift registers up to 128 outputs
+- use the `freertos` feature to use with [freertos-rust](https://github.com/lobaro/FreeRTOS-rust)
 
 ## TODO
 
@@ -15,6 +16,10 @@
 
 ```rust
     use shift_register_driver::sipo::ShiftRegister;
+    use embedded_hal::digital::v2::OutputPin;
+```
+
+```rust
     let shift_register = ShiftRegister::new(clock, latch, data);
     {
         let mut outputs = shift_register.decompose();

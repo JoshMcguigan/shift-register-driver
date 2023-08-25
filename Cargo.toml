@@ -1,6 +1,7 @@
 [package]
 name = "shift-register-driver"
 version = "0.1.1"
+edition = "2021"
 authors = ["Josh Mcguigan"]
 categories = ["embedded", "hardware-support", "no-std"]
 description = "Platform agnostic driver for shift register's built using the embedded-hal"
@@ -11,3 +12,7 @@ readme = "README.md"
 
 [dependencies]
 embedded-hal = "0.2.1"
+freertos-rust = { version = "*", optional = true }
+
+[features]
+freertos = ["freertos-rust"]
