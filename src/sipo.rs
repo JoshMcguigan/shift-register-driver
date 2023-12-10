@@ -176,7 +176,8 @@ ShiftRegisterBuilder!(ShiftRegister128, 128);
 /// 8 output serial-in parallel-out shift register
 pub type ShiftRegister<Pin1, Pin2, Pin3> = ShiftRegister8<Pin1, Pin2, Pin3>;
 
-/// Error type during update 
+/// Error type during update
+#[derive(Debug)]
 pub enum SRError<Pin1Err, Pin2Err, Pin3Err> {
     /// Something wrong with the clock pin.
     ClockPinError(Pin1Err),
