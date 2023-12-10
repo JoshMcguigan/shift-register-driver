@@ -7,8 +7,10 @@ use crate::hal::digital::v2::OutputPin;
 
 /// internal use
 pub trait ShiftRegisterInternal {
+    /// internal error
+    type Error;
     /// updates shift register
-    fn update(&self, index: usize, command: bool) -> Result<(), ()>;
+    fn update(&self, index: usize, command: bool) -> Result<(), Self::Error>;
 }
 
 /// Output pin of the shift register
@@ -27,7 +29,7 @@ impl<'a, T: ShiftRegisterInternal> ShiftRegisterPin<'a, T> {
 }
 
 impl<T: ShiftRegisterInternal> OutputPin for ShiftRegisterPin<'_, T> {
-    type Error = ();
+    type Error = <T as ShiftRegisterInternal>::Error;
 
     fn set_low(&mut self) -> Result<(), Self::Error> {
         self.shift_register.update(self.index, false)?;
@@ -61,23 +63,24 @@ macro_rules! ShiftRegisterBuilder {
             Pin2: OutputPin,
             Pin3: OutputPin,
         {
+            type Error = SRError<<Pin1 as OutputPin>::Error, <Pin2 as OutputPin>::Error, <Pin3 as OutputPin>::Error>;
             /// Sets the value of the shift register output at `index` to value `command`
-            fn update(&self, index: usize, command: bool) -> Result<(), ()> {
+            fn update(&self, index: usize, command: bool) -> Result<(), Self::Error> {
                 self.output_state.borrow_mut()[index] = command;
                 let output_state = self.output_state.borrow();
-                self.latch.borrow_mut().set_low().map_err(|_e| ())?;
+                self.latch.borrow_mut().set_low().map_err(|e| SRError::LatchPinError(e))?;
 
                 for i in 1..=output_state.len() {
                     if output_state[output_state.len() - i] {
-                        self.data.borrow_mut().set_high().map_err(|_e| ())?;
+                        self.data.borrow_mut().set_high().map_err(|e| SRError::DataPinError(e))?;
                     } else {
-                        self.data.borrow_mut().set_low().map_err(|_e| ())?;
+                        self.data.borrow_mut().set_low().map_err(|e| SRError::DataPinError(e))?;
                     }
-                    self.clock.borrow_mut().set_high().map_err(|_e| ())?;
-                    self.clock.borrow_mut().set_low().map_err(|_e| ())?;
+                    self.clock.borrow_mut().set_high().map_err(|e| SRError::ClockPinError(e))?;
+                    self.clock.borrow_mut().set_low().map_err(|e| SRError::ClockPinError(e))?;
                 }
 
-                self.latch.borrow_mut().set_high().map_err(|_e| ())?;
+                self.latch.borrow_mut().set_high().map_err(|e| SRError::LatchPinError(e))?;
                 Ok(())
             }
         }
@@ -150,3 +153,13 @@ ShiftRegisterBuilder!(ShiftRegister128, 128);
 
 /// 8 output serial-in parallel-out shift register
 pub type ShiftRegister<Pin1, Pin2, Pin3> = ShiftRegister8<Pin1, Pin2, Pin3>;
+
+/// Error type during update 
+pub enum SRError<Pin1Err, Pin2Err, Pin3Err> {
+    /// Something wrong with the clock pin.
+    ClockPinError(Pin1Err),
+    /// Something wrong with the latch pin.
+    LatchPinError(Pin2Err),
+    /// Something wrong with the data pin.
+    DataPinError(Pin3Err),
+}
