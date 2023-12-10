@@ -1,7 +1,6 @@
 //! Serial-in parallel-out shift register
 
 use core::cell::RefCell;
-use core::mem::{self, MaybeUninit};
 
 use crate::hal::digital::v2::OutputPin;
 
@@ -125,21 +124,13 @@ macro_rules! ShiftRegisterBuilder {
 
             /// Get embedded-hal output pins to control the shift register outputs
             pub fn decompose(&self) -> [ShiftRegisterPin<'_, Self>; $size] {
-                // Create an uninitialized array of `MaybeUninit`. The `assume_init` is
-                // safe because the type we are claiming to have initialized here is a
-                // bunch of `MaybeUninit`s, which do not require initialization.
-                let mut pins: [MaybeUninit<ShiftRegisterPin<'_, Self>>; $size] =
-                    unsafe { MaybeUninit::uninit().assume_init() };
+                let mut result = core::array::from_fn(|_| None);
 
-                // Dropping a `MaybeUninit` does nothing, so if there is a panic during this loop,
-                // we have a memory leak, but there is no memory safety issue.
-                for (index, elem) in pins.iter_mut().enumerate() {
-                    elem.write(ShiftRegisterPin::<'_, Self>::new(self, index));
+                for (index, elem) in result.iter_mut().enumerate() {
+                    elem.replace(ShiftRegisterPin::<'_, Self>::new(self, index));
                 }
 
-                // Everything is initialized. Transmute the array to the
-                // initialized type.
-                unsafe { mem::transmute::<_, [ShiftRegisterPin<'_, Self>; $size]>(pins) }
+                result.map(|v| v.unwrap())
             }
 
             /// Consume the shift register and return the original clock, latch, and data output pins
