@@ -63,24 +63,46 @@ macro_rules! ShiftRegisterBuilder {
             Pin2: OutputPin,
             Pin3: OutputPin,
         {
-            type Error = SRError<<Pin1 as OutputPin>::Error, <Pin2 as OutputPin>::Error, <Pin3 as OutputPin>::Error>;
+            type Error = SRError<
+                <Pin1 as OutputPin>::Error,
+                <Pin2 as OutputPin>::Error,
+                <Pin3 as OutputPin>::Error,
+            >;
             /// Sets the value of the shift register output at `index` to value `command`
             fn update(&self, index: usize, command: bool) -> Result<(), Self::Error> {
                 self.output_state.borrow_mut()[index] = command;
                 let output_state = self.output_state.borrow();
-                self.latch.borrow_mut().set_low().map_err(|e| SRError::LatchPinError(e))?;
+                self.latch
+                    .borrow_mut()
+                    .set_low()
+                    .map_err(|e| SRError::LatchPinError(e))?;
 
                 for i in 1..=output_state.len() {
                     if output_state[output_state.len() - i] {
-                        self.data.borrow_mut().set_high().map_err(|e| SRError::DataPinError(e))?;
+                        self.data
+                            .borrow_mut()
+                            .set_high()
+                            .map_err(|e| SRError::DataPinError(e))?;
                     } else {
-                        self.data.borrow_mut().set_low().map_err(|e| SRError::DataPinError(e))?;
+                        self.data
+                            .borrow_mut()
+                            .set_low()
+                            .map_err(|e| SRError::DataPinError(e))?;
                     }
-                    self.clock.borrow_mut().set_high().map_err(|e| SRError::ClockPinError(e))?;
-                    self.clock.borrow_mut().set_low().map_err(|e| SRError::ClockPinError(e))?;
+                    self.clock
+                        .borrow_mut()
+                        .set_high()
+                        .map_err(|e| SRError::ClockPinError(e))?;
+                    self.clock
+                        .borrow_mut()
+                        .set_low()
+                        .map_err(|e| SRError::ClockPinError(e))?;
                 }
 
-                self.latch.borrow_mut().set_high().map_err(|e| SRError::LatchPinError(e))?;
+                self.latch
+                    .borrow_mut()
+                    .set_high()
+                    .map_err(|e| SRError::LatchPinError(e))?;
                 Ok(())
             }
         }
