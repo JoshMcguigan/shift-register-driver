@@ -19,10 +19,10 @@
 
     let shift_register = ShiftRegister::new(clock, latch, data);
     {
-        let mut outputs = shift_register.decompose();
+        let mut outputs: [_; 8] = shift_register.decompose();
 
         for out in outputs.iter_mut() {
-            out.set_high().unwrap();;
+            out.set_high().unwrap();
             delay.delay_ms(300u32);
         }
 
