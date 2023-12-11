@@ -124,13 +124,7 @@ macro_rules! ShiftRegisterBuilder {
 
             /// Get embedded-hal output pins to control the shift register outputs
             pub fn decompose(&self) -> [ShiftRegisterPin<'_, Self>; $size] {
-                let mut result = core::array::from_fn(|_| None);
-
-                for (index, elem) in result.iter_mut().enumerate() {
-                    elem.replace(ShiftRegisterPin::<'_, Self>::new(self, index));
-                }
-
-                result.map(|v| v.unwrap())
+                core::array::from_fn(|i| ShiftRegisterPin::<'_, Self>::new(self, i))
             }
 
             /// Consume the shift register and return the original clock, latch, and data output pins
