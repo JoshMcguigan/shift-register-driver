@@ -34,17 +34,17 @@ where
 
 impl<Pin1, Pin2, Pin3, const N: usize> ErrorType for ShiftRegisterPin<'_, Pin1, Pin2, Pin3, N> 
     where
-        Pin1: OutputPin + core::fmt::Debug,
-        Pin2: OutputPin + core::fmt::Debug,
-        Pin3: OutputPin + core::fmt::Debug,
+        Pin1: OutputPin,
+        Pin2: OutputPin,
+        Pin3: OutputPin,
 {
     type Error = SRErr<Pin1, Pin2, Pin3>;
 }
 impl<Pin1, Pin2, Pin3, const N: usize> OutputPin for ShiftRegisterPin<'_, Pin1, Pin2, Pin3, N>
 where
-    Pin1: OutputPin + core::fmt::Debug,
-    Pin2: OutputPin + core::fmt::Debug,
-    Pin3: OutputPin + core::fmt::Debug,
+    Pin1: OutputPin,
+    Pin2: OutputPin,
+    Pin3: OutputPin,
 {
 
     fn set_low(&mut self) -> Result<(), Self::Error> {
