@@ -2,8 +2,11 @@
 
 use core::cell::RefCell;
 
-use crate::hal::digital::v2::OutputPin;
+use hal::digital::{self, ErrorType};
 
+use crate::hal::digital::OutputPin;
+
+type SRErr<Pin1, Pin2, Pin3> = SRError<<Pin1 as ErrorType>::Error, <Pin2 as ErrorType>::Error, <Pin3 as ErrorType>::Error>;
 /// Output pin of the shift register
 pub struct ShiftRegisterPin<'a, Pin1, Pin2, Pin3, const N: usize>
 where
@@ -29,14 +32,20 @@ where
     }
 }
 
+impl<Pin1, Pin2, Pin3, const N: usize> ErrorType for ShiftRegisterPin<'_, Pin1, Pin2, Pin3, N> 
+    where
+        Pin1: OutputPin + core::fmt::Debug,
+        Pin2: OutputPin + core::fmt::Debug,
+        Pin3: OutputPin + core::fmt::Debug,
+{
+    type Error = SRErr<Pin1, Pin2, Pin3>;
+}
 impl<Pin1, Pin2, Pin3, const N: usize> OutputPin for ShiftRegisterPin<'_, Pin1, Pin2, Pin3, N>
 where
-    Pin1: OutputPin,
-    Pin2: OutputPin,
-    Pin3: OutputPin,
+    Pin1: OutputPin + core::fmt::Debug,
+    Pin2: OutputPin + core::fmt::Debug,
+    Pin3: OutputPin + core::fmt::Debug,
 {
-    type Error =
-        SRError<<Pin1 as OutputPin>::Error, <Pin2 as OutputPin>::Error, <Pin3 as OutputPin>::Error>;
 
     fn set_low(&mut self) -> Result<(), Self::Error> {
         self.shift_register.update(self.index, false)?;
@@ -100,41 +109,41 @@ where
         command: bool,
     ) -> Result<
         (),
-        SRError<<Pin1 as OutputPin>::Error, <Pin2 as OutputPin>::Error, <Pin3 as OutputPin>::Error>,
+        SRErr<Pin1, Pin2, Pin3>,
     > {
         self.output_state.borrow_mut()[index] = command;
         let output_state = self.output_state.borrow();
         self.latch
             .borrow_mut()
             .set_low()
-            .map_err(|e| SRError::LatchPinError(e))?;
+            .map_err(SRError::LatchPinError)?;
 
         for i in 1..=output_state.len() {
             if output_state[output_state.len() - i] {
                 self.data
                     .borrow_mut()
                     .set_high()
-                    .map_err(|e| SRError::DataPinError(e))?;
+                    .map_err(SRError::DataPinError)?;
             } else {
                 self.data
                     .borrow_mut()
                     .set_low()
-                    .map_err(|e| SRError::DataPinError(e))?;
+                    .map_err(SRError::DataPinError)?;
             }
             self.clock
                 .borrow_mut()
                 .set_high()
-                .map_err(|e| SRError::ClockPinError(e))?;
+                .map_err(SRError::ClockPinError)?;
             self.clock
                 .borrow_mut()
                 .set_low()
-                .map_err(|e| SRError::ClockPinError(e))?;
+                .map_err(SRError::ClockPinError)?;
         }
 
         self.latch
             .borrow_mut()
             .set_high()
-            .map_err(|e| SRError::LatchPinError(e))?;
+            .map_err(SRError::LatchPinError)?;
         Ok(())
     }
 }
@@ -148,4 +157,15 @@ pub enum SRError<Pin1Err, Pin2Err, Pin3Err> {
     LatchPinError(Pin2Err),
     /// Something wrong with the data pin.
     DataPinError(Pin3Err),
+}
+
+impl<Pin1Err, Pin2Err, Pin3Err> digital::Error for SRError<Pin1Err, Pin2Err, Pin3Err> 
+where
+    Pin1Err: core::fmt::Debug,
+    Pin2Err: core::fmt::Debug,
+    Pin3Err: core::fmt::Debug,
+{
+    fn kind(&self) -> digital::ErrorKind {
+        digital::ErrorKind::Other
+    }
 }

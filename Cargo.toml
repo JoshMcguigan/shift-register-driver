@@ -11,4 +11,4 @@ repository = "https://github.com/JoshMcguigan/shift-register-driver"
 readme = "README.md"
 
 [dependencies]
-embedded-hal = "0.2.1"
+embedded-hal = "1.0.0"
